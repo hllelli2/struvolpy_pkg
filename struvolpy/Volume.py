@@ -150,7 +150,7 @@ class VolumeParser(object):
 
 class Volume(object):
     @classmethod
-    def fromfile(cls, filename):
+    def from_file(cls, filename):
         """
         Creates a Volume object from a file.
 
@@ -641,7 +641,7 @@ class Volume(object):
             duplicated_volume.__tempy_map = copy(self.__tempy_map)
         return duplicated_volume
 
-    def tofile(self, filename=None, output_format=None, overwrite=False):
+    def to_file(self, filename=None, output_format=None, overwrite=False):
         """
         Writes the Volume object to a file.
 
@@ -810,5 +810,3 @@ class SimulatedMap:
         simulatedmap_volume.simulated = True
 
         return simulatedmap_volume
-
-

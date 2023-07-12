@@ -23,19 +23,19 @@ class Structure(object):
     """
 
     @classmethod
-    def fromfile(cls, filename: str, hetatm: bool = False, water: bool = False):
-        f"""
+    def from_file(cls, filename: str, hetatm: bool = False, water: bool = False):
+        """
         Initializes a Structure object from a PDB/mmCIF file.
 
         Args:
             filename (str): The path to the PDB/mmCIF file.
-            hetatm (bool, optional): Whether to include HETATM records in the 
+            hetatm (bool, optional): Whether to include HETATM records in the
             structure. Defaults to False.
-            water (bool, optional): Whether to include water molecules in the 
+            water (bool, optional): Whether to include water molecules in the
             structure. Defaults to False.
 
         Returns:
-            Structure: A Structure object representing the parsed protein 
+            Structure: A Structure object representing the parsed protein
             structure.
 
         Raises:
@@ -286,7 +286,7 @@ class Structure(object):
         Calculates the centre of mass of the protein structure.
 
         Returns:
-            np.ndarray: A numpy array of shape (3,) containing the x, 
+            np.ndarray: A numpy array of shape (3,) containing the x,
             y, and z coordinates of the centre of mass.
         """
         return np.average(self.coor, axis=1, weights=self.weights)
@@ -296,11 +296,11 @@ class Structure(object):
         """
         Returns the sequence of the protein structure.
 
-        The sequence is defined as the one-letter code of the element 
+        The sequence is defined as the one-letter code of the element
         name of each atom in the protein structure.
 
         Returns:
-            np.ndarray: A numpy array of shape (n_atoms,) containing 
+            np.ndarray: A numpy array of shape (n_atoms,) containing
             the one-letter code of the element name of each atom.
         """
         return np.asarray([atom.element.name for atom in self.__get_atoms()])
@@ -322,7 +322,7 @@ class Structure(object):
 
     def __build_kdtree(self):
         """
-        Builds a KDTree from the coordinates of the atoms in the 
+        Builds a KDTree from the coordinates of the atoms in the
         protein structure.
 
         Uses the cKDTree implementation from the scipy.spatial module.
@@ -359,12 +359,12 @@ class Structure(object):
 
         Args:
             chain (gemmi.Chain): The chain to be added.
-            model_idx (int): The index of the model to which the 
+            model_idx (int): The index of the model to which the
             chain will be added. Default is 0.
             **kwargs: Additional keyword arguments.
-                pos (int): The position at which to insert the chain. 
+                pos (int): The position at which to insert the chain.
                 Default is -1 (append to the end).
-                unique_name (bool): Whether to ensure that the chain 
+                unique_name (bool): Whether to ensure that the chain
                 name is unique. Default is True.
 
         Returns:
@@ -379,11 +379,11 @@ class Structure(object):
 
     def translate(self, vector):
         """
-        Translate the coordinates of the atoms in the structure by a 
+        Translate the coordinates of the atoms in the structure by a
         given vector.
 
         Args:
-            vector (np.ndarray): A 3D numpy array representing the vector 
+            vector (np.ndarray): A 3D numpy array representing the vector
             by which to translate the coordinates.
 
         Returns:
@@ -401,11 +401,11 @@ class Structure(object):
 
     def rotate(self, rotation_matrix: np.ndarray):
         """
-        Rotate the coordinates of the atoms in the structure 
+        Rotate the coordinates of the atoms in the structure
         using a rotation matrix.
 
         Args:
-            rotation_matrix (np.ndarray): A 3x3 numpy array 
+            rotation_matrix (np.ndarray): A 3x3 numpy array
             representing the rotation matrix.
 
         Returns:
@@ -429,9 +429,9 @@ class Structure(object):
 
         Args:
             structure (Structure): The structure to compare with.
-            cdd_threshold (float): The CDD threshold for overlap detection. 
+            cdd_threshold (float): The CDD threshold for overlap detection.
             Default is 0.1.
-            distance_threshold (float): The distance threshold for overlap 
+            distance_threshold (float): The distance threshold for overlap
             detection. Default is 0.5.
 
         Returns:
@@ -463,7 +463,7 @@ class Structure(object):
 
     def rmsd(self, structure):
         """
-        Calculates the root-mean-square deviation (RMSD) between 
+        Calculates the root-mean-square deviation (RMSD) between
         two structures.
 
         Args:
@@ -473,7 +473,7 @@ class Structure(object):
             float: The RMSD value (\u212B).
 
         Raises:
-            AssertionError: If the number of coordinates in the two 
+            AssertionError: If the number of coordinates in the two
             structures is not equal.
         """
         assert len(self.coor) == len(structure.coor)
@@ -486,7 +486,7 @@ class Structure(object):
         Returns a deep copy of the current structure object.
 
         Returns:
-            Structure: A new instance of the Structure class with the 
+            Structure: A new instance of the Structure class with the
             same attributes as the current object.
 
         Example:
@@ -504,7 +504,7 @@ class Structure(object):
             structure (Structure): The structure to combine with.
 
         Returns:
-            Structure: A new instance of the Structure class with the 
+            Structure: A new instance of the Structure class with the
             combined structure.
 
         Example:
@@ -522,15 +522,15 @@ class Structure(object):
 
     def get_residues(self, model_idx: int = 0) -> Dict[str, str]:
         """
-        Returns a dictionary of chain names as the key and the one-letter 
+        Returns a dictionary of chain names as the key and the one-letter
         residue codes as the value.
 
         Args:
-            model_idx (int): The index of the model to which the chain will be 
+            model_idx (int): The index of the model to which the chain will be
             added. Default is 0.
 
         Returns:
-            A dictionary with chain names as the keys and one-letter residue 
+            A dictionary with chain names as the keys and one-letter residue
             codes as the values.
 
 
@@ -556,7 +556,7 @@ class Structure(object):
 
         Args:
             seqout (str): The path to the output sequence file.
-            model_idx (int): The index of the model to which the chain will 
+            model_idx (int): The index of the model to which the chain will
             be added. Default is 0.
         Returns:
             None
@@ -581,7 +581,7 @@ class Structure(object):
         """Splits the structure into separate structures, one for each chain.
 
         Returns:
-            A list of Structure objects, one for each chain in the 
+            A list of Structure objects, one for each chain in the
             original structure.
 
         Raises:
@@ -598,11 +598,11 @@ class Structure(object):
             structures.append(new_structure)
         return structures
 
-    def tofile(self, filename: str = "") -> None:
+    def to_file(self, filename: str = "") -> None:
         """Write the instance to a PDB or CIF file.
 
         Args:
-            filename (str, optional): The name of the output file. If 
+            filename (str, optional): The name of the output file. If
             not provided, the instance's filename will be used.
 
         Raises:
@@ -628,7 +628,7 @@ class Structure(object):
         """Converts the current structure to a TEMPy protein object.
 
         Args:
-            filename (str, optional): The name of the output file. If not 
+            filename (str, optional): The name of the output file. If not
             provided, the instance's filename will be used.
 
         Returns:
