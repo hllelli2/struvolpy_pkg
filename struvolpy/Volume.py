@@ -796,7 +796,7 @@ class SimulatedMap:
 
         sb = StructureBlurrer(with_vc=True)
         simulatedmap_tempy = sb._gaussian_blur_real_space_vc(
-            structure.toTEMPy(),
+            structure.to_TEMPy(),
             resolution,
             volume.tempy_map,
         )

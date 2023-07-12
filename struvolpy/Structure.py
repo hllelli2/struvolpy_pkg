@@ -72,7 +72,7 @@ class Structure(object):
         return cls(filename, gemmi_structure)
 
     @classmethod
-    def fromGemmi(
+    def from_gemmi(
         cls,
         gemmi_structure: gemmi.Structure,
         filename: Union[str, Path] = "",
@@ -96,7 +96,7 @@ class Structure(object):
         """
 
         if not isinstance(gemmi_structure, gemmi.Structure):
-            AssertionError("Not a gemmi structure cannot use fromGemmi")
+            AssertionError("Not a gemmi structure cannot use from_gemmi")
 
         if not hetatm:
             try:
@@ -624,7 +624,7 @@ class Structure(object):
         else:
             raise IOError("Out format not supported, use pdb or mmcif")
 
-    def toTEMPy(self, filename=None):
+    def to_TEMPy(self, filename=None):
         """Converts the current structure to a TEMPy protein object.
 
         Args:
@@ -643,7 +643,7 @@ class Structure(object):
             self.filename = filename
         data_block = self.__gemmi_structure.make_mmcif_document().sole_block()
 
-        tempy_structure = mmCIFParser._convertGEMMItoTEMPy(
+        tempy_structure = mmCIFParser._convertGEMMIto_TEMPy(
             data_block,
             self.__gemmi_structure,
             self.filename,
