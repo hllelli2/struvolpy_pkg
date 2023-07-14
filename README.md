@@ -1,6 +1,8 @@
 
 # StruVolPy
 
+[![Pytest](https://github.com/hllelli2/struvolpy_pkg/actions/workflows/run_test.yml/badge.svg)](https://github.com/hllelli2/struvolpy_pkg/actions/workflows/run_test.yml)
+
 A brief description of what this project does and who it's for
 
 
