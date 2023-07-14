@@ -1,15 +1,14 @@
 __author__ = "Luc Elliott"
 __date__ = "14 Jun 2023"
-__version__ = "1.0"
+__version__ = "1.0.0"
 
 import numpy as np
 from pathlib import Path
 from copy import copy
 import gemmi
 import logging
-from TEMPy.protein.structure_parser import mmCIFParser
 from typing import Dict, List, Union
-
+from TEMPy.protein.structure_parser import mmCIFParser
 
 FILE_EXTENSIONS = ("pdb", "mmcif", "mmjson")
 
@@ -643,7 +642,7 @@ class Structure(object):
             self.filename = filename
         data_block = self.__gemmi_structure.make_mmcif_document().sole_block()
 
-        tempy_structure = mmCIFParser._convertGEMMIto_TEMPy(
+        tempy_structure = mmCIFParser._convertGEMMItoTEMPy(
             data_block,
             self.__gemmi_structure,
             self.filename,
