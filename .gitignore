@@ -25,3 +25,6 @@ MANIFEST
 
 # pytest
 .coverage
+
+# other
+.logo_old.png
