@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from struvolpy import Structure
 from constants import ROTATED_COORDINATES_0, RESIDUES, WEIGHTS
+import os
 
 import warnings
 
@@ -10,7 +11,8 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 @pytest.fixture(scope="session")
 def read_pdb():
-    return Structure.from_file("../test_data/Bchain.pdb")
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    return Structure.from_file(f"{current_dir}/../test_data/Bchain.pdb")
 
 
 def test_gemmi_to_tempy(read_pdb):

@@ -22,3 +22,6 @@ wheels/
 MANIFEST
 
 */__pycache__/
+
+# pytest
+.coverage

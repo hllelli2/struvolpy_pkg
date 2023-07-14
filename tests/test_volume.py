@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from struvolpy import Volume
+import os
 
 # from constants import ROTATED_COORDINATES_0, RESIDUES, WEIGHTS
 
@@ -11,7 +12,8 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 @pytest.fixture(scope="session")
 def read_mrc():
-    return Volume.from_file("../test_data/3407_reduced.mrc")
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    return Volume.from_file(f"{current_dir}/../test_data/3407_reduced.mrc")
 
 
 def test_origin(read_mrc):
