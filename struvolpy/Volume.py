@@ -13,7 +13,7 @@ from TEMPy.protein.structure_blurrer import StructureBlurrer
 from TEMPy.protein.scoring_functions import ScoringFunctions
 import mrcfile
 from typing import Sequence
-import Structure
+from .Structure import Structure
 
 
 class VolumeParser(object):
@@ -100,7 +100,8 @@ class VolumeParser(object):
                 self.header.nystart * self.voxel_spacing,
                 self.header.nzstart * self.voxel_spacing,
             )
-        return
+
+        return self.header.origin
 
     def nstart(self):
         """
@@ -180,7 +181,9 @@ class Volume(object):
         return cls(VolumeParser(filename))
 
     @classmethod
-    def fromdata(cls, grid, voxelspacing, origin, filename_output="VolumeFromData.mrc"):
+    def from_data(
+        cls, grid, voxelspacing, origin, filename_output="VolumeFromData.mrc"
+    ):
         """
         Creates a Volume object from data.
 
@@ -212,12 +215,12 @@ class Volume(object):
         return cls(volume)
 
     @classmethod
-    def fromTempyMap(cls, tempy_map, filename_output="VolumeFromTempy.mrc"):
+    def from_TEMPy_map(cls, tempy_map, filename_output="VolumeFromTempy.mrc"):
         grid = tempy_map.fullMap
 
         voxelspacing = tempy_map.apix[0]
         origin = tempy_map.origin
-        return cls.fromdata(grid, voxelspacing, origin, filename_output)
+        return cls.from_data(grid, voxelspacing, origin, filename_output)
 
     def __init__(self, volume_parser) -> None:
         """
@@ -548,7 +551,7 @@ class Volume(object):
         return str(Path(self.__filename).resolve())
 
     @property
-    def tempy_map(self) -> Map:
+    def TEMPy_map(self) -> Map:
         """
         Gets the TEMPy map of the Volume object.
 
@@ -556,7 +559,7 @@ class Volume(object):
             TEMPy.MapParser: The TEMPy map.
         """
         if self.__tempy_map is None:
-            self.create_tempy_object()
+            self.create_TEMPy_object()
         return self.__tempy_map
 
     @property
@@ -613,7 +616,7 @@ class Volume(object):
 
         self.__threshold = threshold
 
-    def create_tempy_object(self) -> None:
+    def create_TEMPy_object(self) -> None:
         """
         Creates a TEMPy Map object.
 
@@ -798,13 +801,13 @@ class SimulatedMap:
         simulatedmap_tempy = sb._gaussian_blur_real_space_vc(
             structure.to_TEMPy(),
             resolution,
-            volume.tempy_map,
+            volume.TEMPy_map,
         )
 
         if normalise:
             simulatedmap_tempy.normalise()
 
-        simulatedmap_volume = Volume.fromTempyMap(simulatedmap_tempy)
+        simulatedmap_volume = Volume.from_TEMPy_map(simulatedmap_tempy)
         simulatedmap_volume.resolution = resolution
         simulatedmap_volume.calculate_threshold(simulated=True)
         simulatedmap_volume.simulated = True
