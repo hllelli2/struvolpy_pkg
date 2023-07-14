@@ -1,35 +1,38 @@
 
-# StruVolPy
+# StruVolPy <img src="./.logo.png" width="100" align="right">
 
 [![Pytest](https://github.com/hllelli2/struvolpy_pkg/actions/workflows/run_test.yml/badge.svg)](https://github.com/hllelli2/struvolpy_pkg/actions/workflows/run_test.yml?event=push)
 
-A brief description of what this project does and who it's for
+
+\
+\
+The StruVolpy package provides parsers for structural biology data formats, atomic coordinates files and electron density maps. This package is designed to help developers working with structural biology data to easily read and manipulate these types of files. The package also includes installation instructions and related projects.
 
 
 
-## License
 
-[GPLv3]()
-
-
-<img src="./.logo.png" width="100" >
 
 
 ## Installation
 
-Install struvolpy with pip
+Install struvolpy with pip (hopefully soon)
 
 ```
 pip install struvolpy
-
 ```
     
 ## Related
 
-Here are some related projects
+Here are some projects that use StruVolPy:
 
 
 [SliceNDice]()
 
 [PowerFit37]()
 
+*Links added soon*
+
+
+## License
+
+[GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html)
