@@ -3,8 +3,15 @@ import pytest
 from struvolpy import Structure
 from constants import ROTATED_COORDINATES_0, RESIDUES, WEIGHTS
 import os
-
 import warnings
+import importlib
+
+try:
+    importlib.import_module("TEMPy")
+
+    has_tempy = True
+except ImportError:
+    has_tempy = False
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -15,6 +22,7 @@ def read_pdb():
     return Structure.from_file(f"{current_dir}/../test_data/Bchain.pdb")
 
 
+@pytest.mark.skipif(not has_tempy, reason="TEMPy is not installed")
 def test_gemmi_to_tempy(read_pdb):
     try:
         read_pdb.to_TEMPy()
@@ -59,17 +67,3 @@ def test_get_residues(read_pdb):
 def test_duplicate(read_pdb):
     new_pdb = read_pdb.duplicate()
     assert id(new_pdb) != id(read_pdb)
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-pdb", help="path to pdb file")
-    args = parser.parse_args()
-    structure = Structure.from_file(args.pdb)
-    rotmat = np.array([[1, 0, 0], [0, 0.8660254, -0.5], [0, 0.5, 0.8660254]])
-    structure.rotate(rotmat)
-    # write structure.coor to test file
-    # print(structure.get_residues())
-    # np.savetxt("test_data/test.txt", coors[0])

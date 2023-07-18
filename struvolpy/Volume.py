@@ -7,13 +7,19 @@ import numpy as np
 import logging
 from copy import copy
 from datetime import datetime
-from TEMPy.maps.em_map import Map
-from TEMPy.maps.map_parser import MapParser
-from TEMPy.protein.structure_blurrer import StructureBlurrer
-from TEMPy.protein.scoring_functions import ScoringFunctions
+
 import mrcfile
 from typing import Sequence
 from .Structure import Structure
+from struvolpy.wrappers import requires_TEMPy
+
+try:
+    from TEMPy.maps.em_map import Map
+    from TEMPy.maps.map_parser import MapParser
+    from TEMPy.protein.structure_blurrer import StructureBlurrer
+    from TEMPy.protein.scoring_functions import ScoringFunctions
+except ImportError:
+    pass
 
 
 class VolumeParser(object):
@@ -214,8 +220,10 @@ class Volume(object):
 
         return cls(volume)
 
+    
     @classmethod
     def from_TEMPy_map(cls, tempy_map, filename_output="VolumeFromTempy.mrc"):
+        print(type(tempy_map))
         grid = tempy_map.fullMap
 
         voxelspacing = tempy_map.apix[0]
@@ -551,7 +559,7 @@ class Volume(object):
         return str(Path(self.__filename).resolve())
 
     @property
-    def TEMPy_map(self) -> Map:
+    def TEMPy_map(self) -> "Map":
         """
         Gets the TEMPy map of the Volume object.
 
@@ -584,6 +592,7 @@ class Volume(object):
 
     """Public Methods"""
 
+    @requires_TEMPy
     def calculate_threshold(self, simulated=False):
         """
         Calculates the threshold for the map.
@@ -616,6 +625,7 @@ class Volume(object):
 
         self.__threshold = threshold
 
+    @requires_TEMPy
     def create_TEMPy_object(self) -> None:
         """
         Creates a TEMPy Map object.
@@ -666,30 +676,20 @@ class Volume(object):
             raise NotImplementedError("Only MRC format is supported at this time.")
 
         with mrcfile.new(filename, overwrite=True) as mrc:
-            # > Setting the data, voxel size and origin
-            # > Using the automatic calculation for the final
-            # > values
             mrc.set_data(self.__grid.astype(np.float32))
             mrc.header.cella = tuple(self.dimensions)
 
             mrc.voxel_size = self.__voxel_size
             mrc.header.origin = self.__origin
 
-            # > Setting the nx, ny, nz in the header
-            # Map and CCP4 files seem to start from the nxstart
-            # and not from the origin.
             mrc.header.nxstart, mrc.header.nystart, mrc.header.nzstart = self.start
             mrc.update_header_from_data()
 
-            # > Setting the statistics in the header.
-            # > Problem occassionally with the automatic
-            # > calculation of the statistics
             mrc.header.dmin = self.dmin
             mrc.header.dmax = self.dmax
             mrc.header.dmean = self.dmean
             mrc.header.rms = self.rms
 
-            # > Setting the header label
             now = datetime.now()
             date_time = now.strftime("%H:%M %d/%m/%y")
             mrc.header.label[0] = f"{output_format.upper()} created at " + str(
@@ -701,10 +701,74 @@ class Volume(object):
                 raise ValueError("MRC file is not valid")
 
 
-class _StructureBlurrerbfac(StructureBlurrer):
+class SimulatedMap:
     """
+    A class for simulating a map from a volume and a structure.
+    Class set up for future development.
+
+    Attributes:
+        None
+
+    Methods:
+        simulate_map(volume: Volume, structure: Structure, resolution: float = -1.0, normalise: bool = False) -> Volume:
+            Simulates a map from a volume and a structure.
+
+
+    """
+
+    @requires_TEMPy
+    def __init__(self) -> None:
+        pass
+
+    @staticmethod
+    def simulate_map(
+        volume: Volume,
+        structure: Structure,
+        resolution: float = -1.0,
+        normalise: bool = False,
+    ) -> Volume:
+        """
+        Simulates a map from a volume and a structure.
+
+        Args:
+            volume (Volume): The volume to use for the simulation.
+            structure (Structure): The structure to use for the simulation.
+            resolution (float, optional): The resolution to use for the simulation. Defaults to -1.0.
+            normalise (bool, optional): Whether to normalise the simulated map. Defaults to False.
+
+        Returns:
+            Volume: The simulated map.
+        """
+        if resolution == -1.0:
+            resolution = volume.resolution
+        if resolution is None:
+            raise AssertionError(
+                "resolution must be specified "
+                "either in the Volume class or as a kwarg"
+            )
+
+        sb = StructureBlurrer(with_vc=True)
+        simulatedmap_tempy = sb._gaussian_blur_real_space_vc(
+            structure.to_TEMPy(),
+            resolution,
+            volume.TEMPy_map,
+        )
+
+        if normalise:
+            simulatedmap_tempy.normalise()
+
+        simulatedmap_volume = Volume.from_TEMPy_map(simulatedmap_tempy)
+        simulatedmap_volume.resolution = resolution
+        simulatedmap_volume.calculate_threshold(simulated=True)
+        simulatedmap_volume.simulated = True
+
+        return simulatedmap_volume
+
+
+"""class _StructureBlurrerbfac(StructureBlurrer):
+    
     Not currently used.
-    """
+    
 
     def __init__(self, outname: str, with_vc=False):
         self.outname = outname
@@ -750,66 +814,4 @@ class _StructureBlurrerbfac(StructureBlurrer):
             exp_map.apix,
             self.outname,
         )
-
-
-class SimulatedMap:
-    """
-    A class for simulating a map from a volume and a structure.
-    Class set up for future development.
-
-    Attributes:
-        None
-
-    Methods:
-        simulate_map(volume: Volume, structure: Structure, resolution: float = -1.0, normalise: bool = False) -> Volume:
-            Simulates a map from a volume and a structure.
-
-
-    """
-
-    def __init__(self) -> None:
-        pass
-
-    @staticmethod
-    def simulate_map(
-        volume: Volume,
-        structure: Structure,
-        resolution: float = -1.0,
-        normalise: bool = False,
-    ) -> Volume:
-        """
-        Simulates a map from a volume and a structure.
-
-        Args:
-            volume (Volume): The volume to use for the simulation.
-            structure (Structure): The structure to use for the simulation.
-            resolution (float, optional): The resolution to use for the simulation. Defaults to -1.0.
-            normalise (bool, optional): Whether to normalise the simulated map. Defaults to False.
-
-        Returns:
-            Volume: The simulated map.
-        """
-        if resolution == -1.0:
-            resolution = vol.resolution
-        if resolution is None:
-            raise AssertionError(
-                "resolution must be specified "
-                "either in the Volume class or as a kwarg"
-            )
-
-        sb = StructureBlurrer(with_vc=True)
-        simulatedmap_tempy = sb._gaussian_blur_real_space_vc(
-            structure.to_TEMPy(),
-            resolution,
-            volume.TEMPy_map,
-        )
-
-        if normalise:
-            simulatedmap_tempy.normalise()
-
-        simulatedmap_volume = Volume.from_TEMPy_map(simulatedmap_tempy)
-        simulatedmap_volume.resolution = resolution
-        simulatedmap_volume.calculate_threshold(simulated=True)
-        simulatedmap_volume.simulated = True
-
-        return simulatedmap_volume
+"""

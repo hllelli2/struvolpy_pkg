@@ -8,7 +8,13 @@ from copy import copy
 import gemmi
 import logging
 from typing import Dict, List, Union
-from TEMPy.protein.structure_parser import mmCIFParser
+from struvolpy.wrappers import requires_TEMPy
+
+try:
+    from TEMPy.protein.structure_parser import mmCIFParser
+except ImportError:
+    pass
+
 
 FILE_EXTENSIONS = ("pdb", "mmcif", "mmjson")
 
@@ -45,11 +51,14 @@ class Structure(object):
 
         if filename.endswith(FILE_EXTENSIONS):
             gemmi_structure = gemmi.read_structure(filename)
+            gemmi_structure.setup_entities()
+
             if not hetatm:
                 try:
                     gemmi_structure.remove_ligands_and_waters()
-                except RuntimeError:
-                    logger.debug("Removed ligands and waters failed")
+                except RuntimeError as e:
+                    logger.info("Removed ligands and waters failed, continuing")
+                    print(e)
                     pass
             if not water:
                 gemmi_structure.remove_waters()
@@ -67,7 +76,6 @@ class Structure(object):
                 if len(FILE_EXTENSIONS) > 1
                 else f"Invalid file extension, must be {FILE_EXTENSIONS[0]}"
             )
-        gemmi_structure.setup_entities()
         return cls(filename, gemmi_structure)
 
     @classmethod
@@ -610,7 +618,7 @@ class Structure(object):
         Returns:
             None
         """
-        if filename is "":
+        if not filename:
             filename = self.filename
         else:
             self.filename = filename
@@ -623,6 +631,7 @@ class Structure(object):
         else:
             raise IOError("Out format not supported, use pdb or mmcif")
 
+    @requires_TEMPy
     def to_TEMPy(self, filename=None):
         """Converts the current structure to a TEMPy protein object.
 

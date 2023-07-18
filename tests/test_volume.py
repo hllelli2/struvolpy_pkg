@@ -2,8 +2,14 @@ import numpy as np
 import pytest
 from struvolpy import Volume
 import os
+import importlib
 
-# from constants import ROTATED_COORDINATES_0, RESIDUES, WEIGHTS
+try:
+    importlib.import_module("TEMPy")
+
+    has_tempy = True
+except ImportError:
+    has_tempy = False
 
 import warnings
 
@@ -36,9 +42,10 @@ def test_dimensions(read_mrc):
     assert np.allclose(read_mrc.shape, np.array([72, 63, 54]))
 
 
+@pytest.mark.skipif(not has_tempy, reason="TEMPy is not installed")
 def test_to_TEMPy(read_mrc):
     try:
         tm = read_mrc.TEMPy_map
-        new_vol = Volume.from_TEMPy_map(tm)
+        Volume.from_TEMPy_map(tm)
     except:
         assert False
