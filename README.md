@@ -1,5 +1,5 @@
 
-# StruVolPy <img src="./.logo.png" width="100" align="right">
+# StruVolPy <img src="https://github.com/hllelli2/struvolpy/blob/main/.logo.png" width="100" align="right">
 
 [![Pytest](https://github.com/hllelli2/struvolpy/actions/workflows/run_test.yml/badge.svg)](https://github.com/hllelli2/struvolpy/actions/workflows/run_test.yml?event=push)
 
