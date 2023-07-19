@@ -1,6 +1,6 @@
 __author__ = "Luc Elliott"
 __date__ = "14 Jun 2023"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 import numpy as np
 from pathlib import Path

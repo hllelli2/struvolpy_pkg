@@ -1,6 +1,6 @@
 __author__ = "Luc Elliott"
 __date__ = "27 Jun 2023"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 from pathlib import Path
 import numpy as np
@@ -220,7 +220,6 @@ class Volume(object):
 
         return cls(volume)
 
-    
     @classmethod
     def from_TEMPy_map(cls, tempy_map, filename_output="VolumeFromTempy.mrc"):
         print(type(tempy_map))
