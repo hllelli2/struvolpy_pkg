@@ -26,6 +26,7 @@ __pycache__/
 
 # pytest
 .coverage
+htmlcov/
 
 # other
 .logo_old.png

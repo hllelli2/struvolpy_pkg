@@ -23,10 +23,10 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install ".[tempy]"
           pip install pytest
-          pip install pytest-cov
+          pip install coverage
       - name: Test with pytest
         run: |
-          pytest --cov=struvolpy --cov-report=xml
+           coverage run -m pytest
       - name: Generate Coverage Report
         run: |
           coverage report -m
