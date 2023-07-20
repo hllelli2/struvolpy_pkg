@@ -222,7 +222,7 @@ class Volume(object):
 
     @classmethod
     def from_TEMPy_map(cls, tempy_map, filename_output="VolumeFromTempy.mrc"):
-        print(type(tempy_map))
+        
         grid = tempy_map.fullMap
 
         voxelspacing = tempy_map.apix[0]

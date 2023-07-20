@@ -58,7 +58,6 @@ class Structure(object):
                     gemmi_structure.remove_ligands_and_waters()
                 except RuntimeError as e:
                     logger.info("Removed ligands and waters failed, continuing")
-                    print(e)
                     pass
             if not water:
                 gemmi_structure.remove_waters()
