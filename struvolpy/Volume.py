@@ -606,7 +606,7 @@ class Volume(object):
             None
         """
         if self.__tempy_map is None:
-            self.create_tempy_object()
+            self.create_TEMPy_object()
 
         if simulated:
             if not self.__resolution:
