@@ -1,0 +1,15 @@
+site_name: StruVolPy
+
+theme:
+  name: "material"
+
+plugins:
+  - mkdocstrings
+
+nav:
+  - API: api.md
+  - StruVolpy Docs: index.md
+  - tutorials.md
+  - How-To Guides: how-to-guides.md
+  - reference.md
+  - explanation.md
