@@ -429,43 +429,43 @@ class Structure(object):
 
     # Structure comparisons
 
-    def overlap(self, structure, cdd_threshold=0.1, distance_threshold=0.5):
+    def overlap(
+        self, structure, distance_threshold=1, overlapping_points_threshold=0.05
+    ):
         """
-        Calculate the overlap between two structures.
+        Determines whether two structures overlap by checking if they have a minimum number of overlapping points.
 
         Args:
             structure (Structure): The structure to compare with.
-            cdd_threshold (float): The CDD threshold for overlap detection.
-            Default is 0.1.
-            distance_threshold (float): The distance threshold for overlap
-            detection. Default is 0.5.
+            distance_threshold (float): The maximum distance between two points for them to be considered overlapping.
+            overlapping_points_threshold (float): The minimum fraction of overlapping points required for the structures to be considered overlapping.
 
         Returns:
-            bool: True if the two structures overlap, False otherwise.
+            bool: True if the structures overlap, False otherwise.
 
         Raises:
-            None.
-
+            None
         """
-        # TODO: code along with copilot so need to double check things
+
         if self.__tree is None:
             self.__build_kdtree()
 
         coords2 = np.asarray(
-            [structure.coor[0], structure.coor[1], structure.coor[2]]
+            np.asarray([structure.coor[0], structure.coor[1], structure.coor[2]])
         ).T
 
-        cdd = np.sqrt(np.sum((self.__tree.query(coords2, k=1)[0] - cdd_threshold) ** 2))
+        min_overlap = (
+            min(len(self.__tree_coords), len(coords2)) * overlapping_points_threshold
+        )
 
-        if cdd < cdd_threshold:
-            return True
+        num_intersecting_points = np.sum(
+            self.__tree.query(coords2, k=1)[0] < distance_threshold
+        )
+
+        if num_intersecting_points < min_overlap:
+            return False
         else:
-            distances = self.__tree.query(coords2, k=1)[0]
-
-            if np.max(distances) < distance_threshold:
-                return True
-            else:
-                return False
+            return True
 
     def rmsd(self, structure):
         """
