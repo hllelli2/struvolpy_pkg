@@ -222,7 +222,6 @@ class Volume(object):
 
     @classmethod
     def from_TEMPy_map(cls, tempy_map, filename_output="VolumeFromTempy.mrc"):
-        
         grid = tempy_map.fullMap
 
         voxelspacing = tempy_map.apix[0]
@@ -241,7 +240,7 @@ class Volume(object):
         self.__header = volume_parser.header
         vx = vy = vz = volume_parser.voxel_spacing
         self.__voxel_size = vx, vy, vz
-        self.__origin = volume_parser.origin()
+        self.__origin = tuple(volume_parser.origin().item())
         self.__grid = volume_parser.grid()
         self.__nstart = volume_parser.nstart()
         self.__simulated = False
@@ -360,7 +359,7 @@ class Volume(object):
         Returns:
             tuple: The origin.
         """
-        return self.__origin.item()
+        return self.__origin
 
     @origin.setter
     def origin(self, origin) -> None:
@@ -373,7 +372,7 @@ class Volume(object):
         if len(origin) != 3:
             raise TypeError("origin must be a list of 3 floats or integers")
         # ox, oy, oz = origin
-        self.__origin = np.array(origin)
+        self.__origin = tuple(origin)
 
     @property
     def start(self) -> np.ndarray:
@@ -384,7 +383,7 @@ class Volume(object):
             np.ndarray: The start.
         """
 
-        return np.array([o / self.voxelspacing for o in self.__origin.item()])
+        return np.array([o / self.voxelspacing for o in self.__origin])
 
     @start.setter
     def start(self, start: Sequence) -> None:
@@ -635,7 +634,7 @@ class Volume(object):
 
         self.__tempy_map = Map(
             self.__grid,
-            self.__origin.item(),
+            self.__origin,
             self.__voxel_size,
             self.__filename,
             MapParser.parseCcpemHeader(self.__header),
