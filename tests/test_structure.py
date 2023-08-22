@@ -67,3 +67,13 @@ def test_get_residues(read_pdb):
 def test_duplicate(read_pdb):
     new_pdb = read_pdb.duplicate()
     assert id(new_pdb) != id(read_pdb)
+
+
+def test_overlap(read_pdb):
+    new_pdb = read_pdb.duplicate()
+    new_pdb.translate(np.array([1, 0, 0]))
+
+    if read_pdb.overlap(new_pdb):
+        assert False
+    else:
+        assert True
