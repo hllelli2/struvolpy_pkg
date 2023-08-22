@@ -71,7 +71,7 @@ def test_duplicate(read_pdb):
 
 def test_overlap(read_pdb):
     new_pdb = read_pdb.duplicate()
-    new_pdb.translate(np.array([1, 0, 0]))
+    new_pdb.translate(np.array([10, 10, 10]))
 
     if read_pdb.overlap(new_pdb):
         assert False
