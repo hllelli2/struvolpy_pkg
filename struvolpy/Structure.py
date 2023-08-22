@@ -326,24 +326,24 @@ class Structure(object):
                     for atom in residue:
                         yield atom
 
-    def __build_kdtree(self):
+    def __build_tree(self):
         """
-        Builds a KDTree from the coordinates of the atoms in the
+        Builds a Ball tree from the coordinates of the atoms in the
         protein structure.
 
-        Uses the cKDTree implementation from the scipy.spatial module.
+        Uses the BallTree implementation from the sklearn.neighbors module.
 
-        The KDTree is stored as a private attribute of the Structure object.
+        The tree is stored as a private attribute of the Structure object.
 
         Returns:
             None
         """
-        from scipy.spatial import cKDTree
+        from sklearn.neighbors import BallTree
 
         self.__tree_coords = np.asarray(
             np.asarray([self.coor[0], self.coor[1], self.coor[2]])
         ).T
-        self.__tree = cKDTree(self.__tree_coords)
+        self.__tree = BallTree(self.__tree_coords)
 
     """Public Methods"""
 
@@ -389,8 +389,8 @@ class Structure(object):
         given vector.
 
         Args:
-            vector (np.ndarray): A 3D numpy array representing the vector
-            by which to translate the coordinates.
+            vector (np.ndarray or tuple or list): A 3D numpy array or tuple or list
+            representing the vector by which to translate the coordinates.
 
         Returns:
             None
@@ -398,6 +398,7 @@ class Structure(object):
         Raises:
             AssertionError: If the shape of the vector is not (3,).
         """
+        vector = np.array(vector)
         assert vector.shape == (3,)
         x_translate, y_translate, z_translate = vector
         for atom in self.atoms:
@@ -429,16 +430,14 @@ class Structure(object):
 
     # Structure comparisons
 
-    def overlap(
-        self, structure, distance_threshold=1, overlapping_points_threshold=0.05
-    ):
+    def overlap(self, structure, collision_threshold=1, clashes_threshold=0.05):
         """
         Determines whether two structures overlap by checking if they have a minimum number of overlapping points.
 
         Args:
             structure (Structure): The structure to compare with.
-            distance_threshold (float): The maximum distance between two points for them to be considered overlapping.
-            overlapping_points_threshold (float): The minimum fraction of overlapping points required for the structures to be considered overlapping.
+            collision_threshold (float): The maximum distance between two points for them to be considered colliding.
+            clashes_threshold (float): The minimum fraction of overlapping points required for the structures to be considered overlapping.
 
         Returns:
             bool: True if the structures overlap, False otherwise.
@@ -448,24 +447,24 @@ class Structure(object):
         """
 
         if self.__tree is None:
-            self.__build_kdtree()
+            self.__build_tree()
 
         coords2 = np.asarray(
             np.asarray([structure.coor[0], structure.coor[1], structure.coor[2]])
         ).T
 
-        min_overlap = (
-            min(len(self.__tree_coords), len(coords2)) * overlapping_points_threshold
-        )
-
-        num_intersecting_points = np.sum(
-            self.__tree.query(coords2, k=1)[0] < distance_threshold
-        )
-
-        if num_intersecting_points < min_overlap:
+        if (np.max(self.__tree_coords, axis=0) < np.min(coords2, axis=0)).any() or (
+            np.max(coords2, axis=0) < np.min(self.__tree_coords, axis=0)
+        ).any():
             return False
-        else:
+
+        distances, _ = self.__tree.query(coords2)
+        clashes_threshold *= min(len(self.__tree_coords), len(coords2))
+
+        if int(sum(distances < collision_threshold)[0]) > clashes_threshold:
             return True
+        else:
+            return False
 
     def rmsd(self, structure):
         """
