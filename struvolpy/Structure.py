@@ -65,10 +65,11 @@ class Structure(object):
             gemmi_structure.remove_empty_chains()
             # TODO: Test what would happen if there are nameless chains
             # name nameless chains
-            # chain_id = 65
-            # for i, chain in enumerate(structure[0]):
-            #     if chain.name == "":
-            #         chain.name = f"chain_{i}"
+            chain_id = 65
+            for chain in gemmi_structure[0]:
+                if chain.name == "":
+                    chain.name = chr(chain_id)
+                    chain_id += 1
         else:
             raise ValueError(
                 f"Invalid file extension, must be {', '.join(FILE_EXTENSIONS[:-1])} or {FILE_EXTENSIONS[-1]}"
@@ -187,6 +188,16 @@ class Structure(object):
         return [atom for atom in self.__get_atoms()]
 
     @property
+    def alpha_carbons(self) -> List[gemmi.Atom]:
+        """
+        Returns a list of all alpha-carbon atoms in the protein structure.
+
+        Returns:
+            List[gemmi.Atom]: A list of all alpha-carbon atoms in the protein structure.
+        """
+        return [atom for atom in self.__get_atoms() if atom.name == "CA"]
+
+    @property
     def chains(self) -> List[gemmi.Chain]:
         """
         Returns a list of all chains in the protein structure.
@@ -245,6 +256,27 @@ class Structure(object):
         assert coor.shape == self.coor.shape
         for atom, pos in zip(self.__get_atoms(), coor.T):
             atom.pos = gemmi.Position(*pos)
+
+    @property
+    def alpha_carbon_coor(self) -> np.ndarray:
+        """
+        Returns the coordinates of all alpha-carbon atoms in the protein structure.
+
+        Returns:
+            np.ndarray: A numpy array of shape (n_atoms, 3) containing
+            the x, y, and z coordinates of all alpha-carbon atoms.
+        """
+        return np.asarray(
+            [
+                *zip(
+                    *[
+                        atom.pos
+                        for atom in self.__get_atoms()
+                        if atom.name == "CA" and atom.element.name == "C"
+                    ]
+                )
+            ]
+        )
 
     @property
     def bfacs(self) -> np.ndarray:
@@ -311,6 +343,16 @@ class Structure(object):
         """
         return np.asarray([atom.element.name for atom in self.__get_atoms()])
 
+    @property
+    def residues(self):
+        """
+        Returns a list of all residues in the protein structure.
+
+        Returns:
+            List[gemmi.Residue]: A list of all residues in the protein structure.
+        """
+        return [residue for residue in self.__get_residues()]
+
     """Private Methods"""
 
     def __get_atoms(self):
@@ -325,6 +367,23 @@ class Structure(object):
                 for residue in chain:
                     for atom in residue:
                         yield atom
+
+    def __get_residues(self):
+        """
+        A generator that yields all residues in the structure.
+
+        Note:
+            Not to be mistaken with the get_residues method which
+            returns a dictionary of chain names as the key and the one-letter
+            residue codes as the value.
+
+        Yields:
+            gemmi.Residue: The next residue in the protein structure.
+        """
+        for model in self.structure:
+            for chain in model:
+                for residue in chain:
+                    yield residue
 
     def __build_tree(self):
         """
@@ -341,7 +400,13 @@ class Structure(object):
         from sklearn.neighbors import BallTree
 
         self.__tree_coords = np.asarray(
-            np.asarray([self.coor[0], self.coor[1], self.coor[2]])
+            np.asarray(
+                [
+                    self.alpha_carbon_coor[0],
+                    self.alpha_carbon_coor[1],
+                    self.alpha_carbon_coor[2],
+                ]
+            )
         ).T
         self.__tree = BallTree(self.__tree_coords)
 
@@ -430,9 +495,14 @@ class Structure(object):
 
     # Structure comparisons
 
-    def overlap(self, structure, collision_threshold=1, clashes_threshold=0.05):
+    def overlap(
+        self,
+        structure,
+        collision_threshold=2,
+        clashes_threshold=0.05,
+    ):
         """
-        Determines whether two structures overlap by checking if they have a minimum number of overlapping points.
+        Determines whether two structures overlap by checking if they have a minimum number of overlapping points. Check carbon alpha atoms only.
 
         Args:
             structure (Structure): The structure to compare with.
@@ -450,7 +520,13 @@ class Structure(object):
             self.__build_tree()
 
         coords2 = np.asarray(
-            np.asarray([structure.coor[0], structure.coor[1], structure.coor[2]])
+            np.asarray(
+                [
+                    structure.alpha_carbon_coor[0],
+                    structure.alpha_carbon_coor[1],
+                    structure.alpha_carbon_coor[2],
+                ]
+            )
         ).T
 
         if (np.max(self.__tree_coords, axis=0) < np.min(coords2, axis=0)).any() or (
@@ -465,6 +541,30 @@ class Structure(object):
             return True
         else:
             return False
+
+    def get_coordinate_of_residue(self, residue_number, atom_name="CA"):
+        """
+        Returns the coordinates of the specified atom in the specified residue.
+
+        Args:
+            residue_number (int): The number of the residue to search for.
+            atom_name (str): The name of the atom to search for. Defaults to "CA".
+
+        Returns:
+            numpy.ndarray: The coordinates of the specified atom in the specified residue.
+
+        """
+        for residue in self.__get_residues():
+            if residue.seqid.num == residue_number:
+                for atom in residue:
+                    if atom.name == atom_name:
+                        return np.array([atom.pos.x, atom.pos.y, atom.pos.z])
+                else:
+                    raise ValueError(
+                        f"Atom {atom_name} not found in residue {residue.seqid.num}"
+                    )
+        else:
+            raise ValueError(f"Residue {residue_number} not found")
 
     def rmsd(self, structure):
         """
