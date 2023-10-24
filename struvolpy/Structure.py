@@ -1,6 +1,6 @@
 __author__ = "Luc Elliott"
 __date__ = "14 Jun 2023"
-__version__ = "1.0.1"
+__version__ = "1.0.7"
 
 import numpy as np
 from pathlib import Path
@@ -9,6 +9,7 @@ import gemmi
 import logging
 from typing import Dict, List, Union
 from struvolpy.wrappers import requires_TEMPy
+import warnings
 
 try:
     from TEMPy.protein.structure_parser import mmCIFParser
@@ -16,7 +17,7 @@ except ImportError:
     pass
 
 
-FILE_EXTENSIONS = ("pdb", "mmcif", "mmjson")
+FILE_EXTENSIONS = ("pdb", "mmcif", "mmjson", "cif")
 
 logger = logging.getLogger(__name__)
 
@@ -43,39 +44,35 @@ class Structure(object):
             Structure: A Structure object representing the parsed protein
             structure.
 
-        Raises:
-            ValueError: If the file extension is not valid
         """
 
         filename = str(filename)
 
-        if filename.endswith(FILE_EXTENSIONS):
-            gemmi_structure = gemmi.read_structure(filename)
-            gemmi_structure.setup_entities()
-
-            if not hetatm:
-                try:
-                    gemmi_structure.remove_ligands_and_waters()
-                except RuntimeError as e:
-                    logger.info("Removed ligands and waters failed, continuing")
-                    pass
-            if not water:
-                gemmi_structure.remove_waters()
-
-            gemmi_structure.remove_empty_chains()
-            # TODO: Test what would happen if there are nameless chains
-            # name nameless chains
-            chain_id = 65
-            for chain in gemmi_structure[0]:
-                if chain.name == "":
-                    chain.name = chr(chain_id)
-                    chain_id += 1
-        else:
-            raise ValueError(
-                f"Invalid file extension, must be {', '.join(FILE_EXTENSIONS[:-1])} or {FILE_EXTENSIONS[-1]}"
-                if len(FILE_EXTENSIONS) > 1
-                else f"Invalid file extension, must be {FILE_EXTENSIONS[0]}"
+        if not filename.endswith(FILE_EXTENSIONS):
+            warnings.warn(
+                f"File extension is not {', '.join(FILE_EXTENSIONS[:-1])} or {FILE_EXTENSIONS[-1]}"
+                " and may not be parsed correctly"
             )
+        gemmi_structure = gemmi.read_structure(filename)
+        gemmi_structure.setup_entities()
+
+        if not hetatm:
+            try:
+                gemmi_structure.remove_ligands_and_waters()
+            except RuntimeError as e:
+                logger.info("Removed ligands and waters failed, continuing")
+                pass
+        if not water:
+            gemmi_structure.remove_waters()
+
+        gemmi_structure.remove_empty_chains()
+
+        chain_id = 65
+        for chain in gemmi_structure[0]:
+            if chain.name == "":
+                chain.name = chr(chain_id)
+                chain_id += 1
+
         return cls(filename, gemmi_structure)
 
     @classmethod

@@ -12,6 +12,7 @@ import mrcfile
 from typing import Sequence
 from .Structure import Structure
 from struvolpy.wrappers import requires_TEMPy
+import warnings
 
 try:
     from TEMPy.maps.em_map import Map
@@ -136,6 +137,9 @@ class VolumeParser(object):
 
         Returns:
             None
+
+        Bug fixes:
+            1. mapc, mapr, and maps could be numpy arrays, so they are cast to integers.
         """
 
         axis_cols = {
@@ -144,13 +148,16 @@ class VolumeParser(object):
             3: "maps",
         }
 
-        if self.header.mapc != 1:
-            self.data = np.swapaxes(self.data, 2, self.header.mapc - 1)
-            self.header[axis_cols[self.header.mapc]] = self.header.mapc
+        mapc = int(self.header.mapc)
+        mapr = int(self.header.mapr)
+
+        if mapc != 1:
+            self.data = np.swapaxes(self.data, 2, mapc - 1)
+            self.header[axis_cols[mapc]] = mapc
             self.header.mapc = 1
 
-        if self.header.mapr != 2:
-            self.data = np.swapaxes(self.data, 1, self.header.mapr - 1)
+        if mapr != 2:
+            self.data = np.swapaxes(self.data, 1, mapr - 1)
             self.header.mapr = 2
             self.header.maps = 3
 
@@ -182,7 +189,10 @@ class Volume(object):
         elif filename.endswith(("xplor", "cns")):
             raise NotImplementedError("XPLOR and CNS file formats are not supported.")
         else:
-            raise ValueError("Extension of file is not supported.")
+            warnings.warn(
+                "File extension not in list of supported file formats. "
+                "Trying to read file anyway."
+            )
 
         return cls(VolumeParser(filename))
 
