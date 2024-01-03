@@ -721,7 +721,7 @@ class Structure(object):
         outtype = Path(filename).suffix[1:]
         if outtype == "pdb":
             self.structure.write_minimal_pdb(filename)
-        elif outtype == "mmcif":
+        elif outtype == "mmcif" or outtype == "cif":
             self.structure.make_mmcif_document().write_file(filename)
         else:
             raise IOError("Out format not supported, use pdb or mmcif")
