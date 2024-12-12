@@ -691,10 +691,11 @@ class Structure(object):
 
         """
         structures = []
+
         for chain in self.chains:
             new_structure = self.duplicate()
             new_structure.structure = gemmi.Structure()
-            new_structure.add_model(gemmi.Model(chain.name))
+            new_structure.add_model(gemmi.Model(1))
             new_structure.add_chain(chain, pos=-1, unique_name=True)
             new_structure.filename = f"{Path(self.filename).stem}_{chain.name}.pdb"
             structures.append(new_structure)
